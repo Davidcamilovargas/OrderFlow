@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Orders.Api.Domain;
 
 namespace Orders.Api.Infrastructure;
+/// <summary> Crea la tabla de pedidos y el catálogo de productos (seed) si no existen.
+/// </summary>
 
 public class OrdersDbContext(DbContextOptions<OrdersDbContext> options) : DbContext(options)
 {

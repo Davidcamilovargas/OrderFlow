@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Orders.Api.Infrastructure;
+using System.Text.Json.Serialization;
+using Orders.Api.Endpoints;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +12,9 @@ var connectionString = builder.Configuration.GetConnectionString("OrdersDb")
 builder.Services.AddDbContext<OrdersDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
 
@@ -24,5 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapOrderEndpoints();
 
 app.Run();
