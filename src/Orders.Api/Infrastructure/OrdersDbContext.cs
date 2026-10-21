@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Orders.Api.Domain;
+using Orders.Api.Infrastructure.Outbox;
 
 namespace Orders.Api.Infrastructure;
 /// <summary> Crea la tabla de pedidos y el catálogo de productos (seed) si no existen.
@@ -9,7 +10,7 @@ public class OrdersDbContext(DbContextOptions<OrdersDbContext> options) : DbCont
 {
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Product> Products => Set<Product>();
-
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Order>(order =>
@@ -33,6 +34,18 @@ public class OrdersDbContext(DbContextOptions<OrdersDbContext> options) : DbCont
                 new Product("ABC-01", "Teclado mecánico"),
                 new Product("ABC-02", "Mouse inalámbrico"),
                 new Product("ABC-03", "Monitor 27 pulgadas"));
+        });
+
+        modelBuilder.Entity<OutboxMessage>(outbox =>
+        {
+            outbox.ToTable("OutboxMessages");
+            outbox.HasKey(m => m.Id);
+            outbox.Property(m => m.Type).HasMaxLength(100).IsRequired();
+            outbox.Property(m => m.RoutingKey).HasMaxLength(100).IsRequired();
+            outbox.Property(m => m.Payload).HasColumnType("jsonb").IsRequired();
+            outbox.Property(m => m.LastError).HasMaxLength(1000);
+            // Índice parcial: solo indexa los pendientes, que es lo único que consulta el publicador.
+            outbox.HasIndex(m => m.OccurredAt).HasFilter("\"ProcessedAt\" IS NULL");
         });
     }
 }

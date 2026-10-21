@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Orders.Api.Domain;
 using Orders.Api.Infrastructure;
+using OrderFlow.Contracts;
+using Orders.Api.Infrastructure.Outbox;
 
 namespace Orders.Api.Endpoints;
 
@@ -37,13 +39,17 @@ public static class OrderEndpoints
         if (errors.Count > 0)
             return TypedResults.ValidationProblem(errors);
 
-        var order = Order.Create(request.ClienteNombre!, sku, request.Cantidad, time.GetUtcNow());
-        db.Orders.Add(order);
-        await db.SaveChangesAsync(ct);
+         var order = Order.Create(request.ClienteNombre!, sku, request.Cantidad, time.GetUtcNow());
+        var orderCreated = new OrderCreated(Guid.NewGuid(), order.Id, order.Sku, order.Cantidad, order.CreadoEn);
 
+        db.Orders.Add(order);
+        db.OutboxMessages.Add(OutboxMessage.Create(
+            orderCreated.EventId, orderCreated, Messaging.RoutingKeys.OrderCreated, orderCreated.OcurridoEn));
+        await db.SaveChangesAsync(ct);
         return TypedResults.Created($"/orders/{order.Id}", OrderResponse.From(order));
     }
 
+    
     /// <summary>
     /// Lista todos los pedidos existentes, ordenados por fecha de creación descendente. Devuelve una lista vacía si no hay pedidos.
     /// </summary>

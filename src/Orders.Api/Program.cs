@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Orders.Api.Infrastructure;
 using System.Text.Json.Serialization;
 using Orders.Api.Endpoints;
-
+using Orders.Api.Infrastructure.RabbitMq;
+using Orders.Api.Infrastructure.Outbox;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+builder.Services.AddHostedService<OutboxPublisher>();
 
 var app = builder.Build();
 
