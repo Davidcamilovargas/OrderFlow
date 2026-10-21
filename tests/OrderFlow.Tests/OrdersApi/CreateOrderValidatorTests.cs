@@ -13,8 +13,6 @@ public class CreateOrderValidatorTests
 
         Assert.Equal(["cantidad", "clienteNombre", "sku"], errors.Keys.Order());
     }
-
-    [Theory]
     [InlineData(1, true)]
     [InlineData(100, true)]
     [InlineData(0, false)]

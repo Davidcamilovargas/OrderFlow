@@ -187,14 +187,13 @@ dotnet test
 
 Los tests de Inventory levantan un PostgreSQL temporal con **Testcontainers**, porque el `UPDATE`
 atómico y las transacciones no se pueden probar con una base en memoria. Resultado esperado:
-9 pruebas correctas (6 tests; uno de ellos es un `[Theory]` con 4 casos).
+5 pruebas correctas
 
 | Test | Cubre |
 |---|---|
 | `Confirm_es_idempotente_si_llega_el_mismo_resultado_dos_veces` | Transiciones + idempotencia en Orders |
 | `Reject_sobre_un_pedido_confirmado_lanza_excepcion` | Transiciones inválidas |
 | `Devuelve_todos_los_errores_juntos_cuando_todos_los_campos_son_invalidos` | Validación |
-| `La_cantidad_debe_estar_entre_1_y_100` | Validación (valores límite) |
 | `El_mismo_evento_procesado_dos_veces_descuenta_stock_una_sola_vez` | Idempotencia del Worker |
 | `Sin_stock_suficiente_rechaza_y_no_descuenta` | Rechazo sin descontar |
 

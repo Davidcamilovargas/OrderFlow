@@ -1,6 +1,22 @@
-@Orders.Api_HostAddress = http://localhost:5236
+@host = http://localhost:5236
 
-GET {{Orders.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Catálogo de productos
+GET {{host}}/products
 
-###
+### Crear un pedido válido
+POST {{host}}/orders
+Content-Type: application/json
+
+{ "clienteNombre": "Ana", "sku": "ABC-01", "cantidad": 2 }
+
+### Crear un pedido inválido (400 con los errores por campo)
+POST {{host}}/orders
+Content-Type: application/json
+
+{ "clienteNombre": "", "sku": "XYZ-99", "cantidad": 0 }
+
+### Listar pedidos
+GET {{host}}/orders
+
+### Estado de la API
+GET {{host}}/health

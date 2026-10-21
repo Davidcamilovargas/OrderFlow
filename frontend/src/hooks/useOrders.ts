@@ -21,7 +21,9 @@ export function useOrders() {
     }
   }, [])
 
+
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- carga inicial: el estado se actualiza después del await, al sincronizar con la API
     void refresh()
     const id = setInterval(() => {
       // Si la pestaña no está visible no tiene sentido consultar la API.
