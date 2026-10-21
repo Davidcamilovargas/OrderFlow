@@ -5,7 +5,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-orderflow}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-orderflow_dev}
     ports:
-      - "5433:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,13 +20,56 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-orderflow}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-orderflow_dev}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_HOST_PORT:-5672}:5672"
+      - "${RABBITMQ_UI_HOST_PORT:-15672}:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10
+
+  orders-api:
+    build:
+      context: .
+      dockerfile: src/Orders.Api/Dockerfile
+    environment:
+      ConnectionStrings__OrdersDb: "Host=postgres;Port=5432;Database=orders_db;Username=${POSTGRES_USER:-orderflow};Password=${POSTGRES_PASSWORD:-orderflow_dev}"
+      RabbitMq__Host: rabbitmq
+      RabbitMq__User: ${RABBITMQ_USER:-orderflow}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-orderflow_dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  inventory-worker:
+    build:
+      context: .
+      dockerfile: src/Inventory.Worker/Dockerfile
+    environment:
+      ConnectionStrings__InventoryDb: "Host=postgres;Port=5432;Database=inventory_db;Username=${POSTGRES_USER:-orderflow};Password=${POSTGRES_PASSWORD:-orderflow_dev}"
+      RabbitMq__Host: rabbitmq
+      RabbitMq__User: ${RABBITMQ_USER:-orderflow}
+      RabbitMq__Password: ${RABBITMQ_PASSWORD:-orderflow_dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_HOST_PORT:-3000}:80"
+    depends_on:
+      orders-api:
+        condition: service_healthy
 
 volumes:
   pgdata:

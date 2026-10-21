@@ -21,7 +21,7 @@ builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(Rab
 builder.Services.AddHostedService<OutboxPublisher>();
 builder.Services.AddScoped<StockResultHandler>();
 builder.Services.AddHostedService<StockResultConsumer>();
-
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -39,5 +39,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapOrderEndpoints();
+app.MapHealthChecks("/health");
 
 app.Run();
