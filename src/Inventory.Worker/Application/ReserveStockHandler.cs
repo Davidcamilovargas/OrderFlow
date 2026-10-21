@@ -24,7 +24,7 @@ public class ReserveStockHandler(InventoryDbContext db, TimeProvider time, ILogg
         {
             logger.LogInformation(
                 "Evento {EventId} duplicado: no se descuenta stock, se reenvía la respuesta original.", message.EventId);
-            return alreadyProcessed.ToResponse();
+             // return alreadyProcessed.ToResponse();     ← comentada: "rompemos" la idempotencia
         }
 
         // UPDATE atómico: solo descuenta si alcanza el stock. Evita leer-modificar-escribir y,
